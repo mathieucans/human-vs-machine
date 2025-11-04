@@ -1,0 +1,84 @@
+#set page(paper: "a4", margin: (x: 1.8cm, y: 2.2cm))
+
+#show link: set text(fill: blue, weight: 700)
+#show link: underline
+#set text(
+  font: "Roboto Serif"
+)
+#set document(author: "Thomas Coopman", title: [Human vs Machine Hands-on])
+#set quote(block: true)
+#show quote: set block(above: 3.5em, below: 3.5em)
+#set par(leading: 1.4em, spacing: 3em)
+#show heading: set block(
+  above: 3em,
+  below: 1.8em
+)
+
+#title()
+
+#outline()
+
+In this lab, you'll explore different ways of collaborating with AI while solving a coding challenge.
+
+= Ways of Working
+
+Choose one of the following collaboration modes:
+
+== Slave of the Machine (Full AI-Controlled)
+You are not allowed to write any code yourself. You may only give instructions to the AI, and the AI must generate all code.
+
+_You may provide code examples, but only as guidance to the AI._
+
+== Human in Control (Limited AI Assistance)
+You may use AI, but only through copy-paste interactions, and only for:
+
+- Setting up scaffolding or boilerplate to get started quickly
+- Converting tests from the `KATA.md` into executable code
+
+== Cooperation (Human + AI Partnership)
+You can use AI freely in any way you like. Try to leverage it as much as possible while still contributing actively yourself.
+
+= Goal of the Workshop
+
+Learn to evaluate, experience, and discuss the advantages and disadvantages of using AI for coding.
+
+= Preparation
+
+Before the workshop:
+
+- Set up a project in your preferred language, including unit test support.
+- Form a group and select your way of working.
+- Continue reading the instructions below.
+
+= Workshop Instructions
+
+Each group will implement the challenge described in `KATA.md`.
+
+Keep the following in mind:
+
+- The kata is intentionally challenging.
+- You probably won’t complete it — you might not even get close — and that’s totally fine. Focus on learning, not finishing.
+- Throughout the session, I’ll pause you at times to reflect, ask questions, and discuss.
+- At the end, we’ll wrap up and reflect on what we’ve learned.
+- I may ask a few participants to share their code with the group.
+
+== Summary of Rules
+
+#table(
+  columns: (2fr, 3fr, 3fr),
+  table.header(
+    [*Mode*],
+    [*Can You Write Code?*],
+    [*How Can AI Be Used?*],
+  ),
+  [Slave of the Machine],
+  [No — only instructions to AI],
+  [AI writes all code],
+  [Human in Control],
+  [Yes],
+  [Limited AI use: scaffolding, test transformation],
+  [Cooperation],
+  [Yes],
+  [Use AI in any way — as much as possible],
+)
+
