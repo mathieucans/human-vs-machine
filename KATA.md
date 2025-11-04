@@ -83,10 +83,10 @@ Events: `[ConveyorInitialized(belt=Belt(size=3, stations=[])), ItemAdded(item=It
 Output: `I(a) _ _`
 
 Events: `[ConveyorInitialized(belt=Belt(size=3, stations=[(0, Station(name="s", size=1))]))]`
-Output: `S(a) _ _`
+Output: `S(s) _ _`
 
 Events: `[ConveyorInitialized(belt=Belt(size=3, stations=[(0, Station(name="s", size=3))]))]`
-Output: `SSS(a)`
+Output: `SSS(s)`
 
 ## New rules
 
