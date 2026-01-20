@@ -1,34 +1,50 @@
-import { describe, test , expect} from "vitest";
+import { describe, test, expect } from "vitest";
+
+
+
+function ConveyorInitialized (belt: Belt) {
+    return new ConveyorInitializedEvent(belt);
+}
 
 class ConveyorInitializedEvent {
-    constructor (belt: any) {
+    constructor (
+        public readonly  belt: Belt) {
 
     }
 
-}
-
-function ConveyorInitialized (param: any) {
-    return new ConveyorInitializedEvent(param);
 }
 
 class Belt {
-    constructor (size: number, stations: any[]) {
+    constructor (
+        public readonly size: number,
+        public readonly stations: any[]) {
 
     }
 
 }
 
-function visualize (events: ConveyorInitializedEvent[]) {
+function eventsToVisualization (events: ConveyorInitializedEvent[]) {
     return "_ _ _"
 }
+function visualizationToEvents (outputs: string) {
+    return [ConveyorInitialized(new Belt(3, []))]
+}
 describe('visualize-conveyer-belt', () => {
-   describe('Initial examples', () => {
-       test('empty belt', () => {
-           let events = [ConveyorInitialized(new Belt(3, []))];
+    describe.each([
+        [[ConveyorInitialized(new Belt(3, []))], "_ _ _"]
+    ])('Initial examples %s <-> %s', (events, outputs) => {
+        test('eventsToVisualization', () => {
 
-           const outputs = visualize(events);
+            const result = eventsToVisualization(events);
 
-           expect(outputs).toEqual("_ _ _")
-       })
-   })
+            expect(result).toEqual(outputs)
+        })
+
+        test('eventsToVisualization', () => {
+
+            const result = visualizationToEvents(outputs);
+
+            expect(result).toEqual(events)
+        })
+    })
 });
