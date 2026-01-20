@@ -29,7 +29,11 @@ class Belt {
 
 class ItemAddedEvent {
     constructor (
-        public readonly item: any) {
+        public readonly item: Item) {
+    }
+
+    toString() {
+        return `ItemAdded(item=${this.item})`;
     }
 }
 
@@ -40,6 +44,10 @@ function ItemAdded (item: any) {
 class Item {
     constructor (public readonly name: string) {
 
+    }
+
+    toString() {
+        return `Item(name=${this.name})`;
     }
 
 }
@@ -87,7 +95,7 @@ describe('visualize-conveyer-belt', () => {
     describe.each([
         [[ConveyorInitialized(new Belt(3, []))], "_ _ _"],
         [[ConveyorInitialized(new Belt(4, []))], "_ _ _ _"],
-        // [[ConveyorInitialized(new Belt(3, [])), ItemAdded(new Item("a"))], "I(a) _ _"],
+        [[ConveyorInitialized(new Belt(3, [])), ItemAdded(new Item("a"))], "I(a) _ _"],
     ])
     ('%s <-> %s', (events, outputs) => {
         test('eventsToVisualization', () => {
