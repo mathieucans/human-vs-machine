@@ -10,6 +10,9 @@ class ConveyorInitializedEvent {
 
     }
 
+    toString() {
+        return `ConveyorInitialized(belt=${this.belt}`
+    }
 }
 
 class Belt {
@@ -19,6 +22,9 @@ class Belt {
 
     }
 
+    toString() {
+        return `Belt(size=${this.size}, stations=[${this.stations.join(', ')}])`;
+    }
 }
 
 class ItemAddedEvent {
@@ -83,7 +89,7 @@ describe('visualize-conveyer-belt', () => {
         [[ConveyorInitialized(new Belt(4, []))], "_ _ _ _"],
         // [[ConveyorInitialized(new Belt(3, [])), ItemAdded(new Item("a"))], "I(a) _ _"],
     ])
-    ('Initial examples %s <-> %s', (events, outputs) => {
+    ('%s <-> %s', (events, outputs) => {
         test('eventsToVisualization', () => {
 
             const result = eventsToVisualization(events);
