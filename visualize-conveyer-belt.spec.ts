@@ -1,14 +1,12 @@
 import { describe, test, expect } from "vitest";
 
-
-
 function ConveyorInitialized (belt: Belt) {
     return new ConveyorInitializedEvent(belt);
 }
 
 class ConveyorInitializedEvent {
     constructor (
-        public readonly  belt: Belt) {
+        public readonly belt: Belt) {
 
     }
 
@@ -23,16 +21,39 @@ class Belt {
 
 }
 
-function eventsToVisualization (events: ConveyorInitializedEvent[]) {
+class ItemAddedEvent {
+    constructor (
+        public readonly item: any) {
+    }
+}
+
+function ItemAdded (item: any) {
+    return new ItemAddedEvent(item);
+}
+
+class Item {
+    constructor (public readonly name: string) {
+
+    }
+
+}
+
+type ConveyerEvent = ConveyorInitializedEvent | ItemAddedEvent
+
+function eventsToVisualization (events: ConveyerEvent[]) {
     return "_ _ _"
 }
 function visualizationToEvents (outputs: string) {
     return [ConveyorInitialized(new Belt(3, []))]
 }
+
+
 describe('visualize-conveyer-belt', () => {
     describe.each([
-        [[ConveyorInitialized(new Belt(3, []))], "_ _ _"]
-    ])('Initial examples %s <-> %s', (events, outputs) => {
+        [[ConveyorInitialized(new Belt(3, []))], "_ _ _"],
+        [[ConveyorInitialized(new Belt(3, [])), ItemAdded(new Item("a"))], "I(a) _ _"],
+])
+    ('Initial examples %s <-> %s', (events, outputs) => {
         test('eventsToVisualization', () => {
 
             const result = eventsToVisualization(events);
