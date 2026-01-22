@@ -8,7 +8,8 @@ describe('visualize-conveyer-belt', () => {
         [[ConveyorInitialized(new Belt(3, []))], "_ _ _"],
         [[ConveyorInitialized(new Belt(4, []))], "_ _ _ _"],
         [[ConveyorInitialized(new Belt(3, [])), ItemAdded(new Item("a"))], "I(a) _ _"],
-        [[ConveyorInitialized(new Belt(3, [new Station(0, "s", 1)]))],"S(s) _ _"]
+        [[ConveyorInitialized(new Belt(3, [new Station(0, "s", 1)]))],"S(s) _ _"],
+        [[ConveyorInitialized(new Belt(3, [new Station(0,"s", 3)]))], "SSS(s)"],
     ])
     ('%s <-> %s', (events, outputs) => {
         test('eventsToVisualization', () => {

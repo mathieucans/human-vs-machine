@@ -41,7 +41,11 @@ function tokenBuilder (token:string) {
         return new ItemToken("a")
     }
     if(token.startsWith("S")) {
-        return new StationToken(0,"s", 1)
+        let size = 0;
+        while (size < token.length && token.at(size) === "S") {
+            size++;
+        }
+        return new StationToken(0,"s", size)
     }
     throw `Unknwon token ${token}`;
 }
@@ -58,27 +62,29 @@ interface TokenVisitor {
 class TokenToEventsVisitor implements TokenVisitor {
     private _events :ConveyerEvent[] = []
     private readonly stations:Station[] = [];
-    constructor(private readonly beltLength: number) {
-        this._events.push(ConveyorInitialized(new Belt(this.beltLength, this.stations)))
-    }
+    private  beltLength: number = 0
 
     visitEmpty(token: EmptyToken): void {
+        this.beltLength++
     }
     visitItem(token: ItemToken): void {
         this._events.push(ItemAdded(new Item(token.name)))
+        this.beltLength++
     }
     visitStation(token: StationToken): void {
         this.stations.push(new Station(token.position, token.name, token.size))
+        this.beltLength+=token.size;
     }
 
     events() {
-        return this._events
+        const conveyorInitializedEvents: ConveyerEvent[] = [ConveyorInitialized(new Belt(this.beltLength, this.stations))];
+        return conveyorInitializedEvents.concat(this._events)
     }
 }
 
 export function visualizationToEvents (outputs: string) {
     const tokens = outputs.split(" ").map(tokenBuilder)
-    const tokenVisitor = new TokenToEventsVisitor(tokens.length);
+    const tokenVisitor = new TokenToEventsVisitor();
     tokens.forEach(token => token.accept(tokenVisitor))
     return tokenVisitor.events()
 }
