@@ -57,7 +57,7 @@ export class Station {
 
 }
 
-export type ConveyerEvent = ConveyorInitializedEvent | ItemAddedEvent
+export type ConveyerEvent = ConveyorInitializedEvent | ItemAddedEvent | SteppedEvent
 export function ConveyorInitialized (belt: Belt) {
     return new ConveyorInitializedEvent(belt);
 }
@@ -65,3 +65,7 @@ export function ItemAdded (item: Item) {
     return new ItemAddedEvent(item);
 }
 
+class SteppedEvent {
+}
+
+export const Stepped = new SteppedEvent();
