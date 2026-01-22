@@ -1,16 +1,27 @@
-import { Belt, ConveyerEvent, ConveyorInitializedEvent } from "./domain/events";
+import { Belt, ConveyerEvent, ConveyorInitializedEvent, ItemAddedEvent } from "./domain/events";
 
 class InitializedVisualizationAcc implements VisualizationAccumulator {
+
+    private buildIndex = 0;
+    private readonly stringBelt:string[] = []
     constructor (private belt: Belt) {
 
     }
 
     consume (event: ConveyerEvent): VisualizationAccumulator {
+        if (event instanceof ItemAddedEvent) {
+            this.stringBelt.push("I(a)")
+            this.buildIndex++
+        }
         return this;
     }
 
     toString (): string {
-        return Array.from({ length: this.belt.size }, () => "_").join(" ");
+        while(this.buildIndex < this.belt.size) {
+            this.stringBelt.push("_")
+            this.buildIndex++
+        }
+        return this.stringBelt.join(" ");
     }
 }
 
