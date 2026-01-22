@@ -1,58 +1,13 @@
-import { describe, test, expect } from "vitest";
+import { describe, expect, test } from "vitest";
+import { Belt, type ConveyerEvent, ConveyorInitializedEvent, Item, ItemAddedEvent } from "./domain/events";
 
 function ConveyorInitialized (belt: Belt) {
     return new ConveyorInitializedEvent(belt);
 }
 
-class ConveyorInitializedEvent {
-    constructor (
-        public readonly belt: Belt) {
-
-    }
-
-    toString() {
-        return `ConveyorInitialized(belt=${this.belt}`
-    }
-}
-
-class Belt {
-    constructor (
-        public readonly size: number,
-        public readonly stations: any[]) {
-
-    }
-
-    toString() {
-        return `Belt(size=${this.size}, stations=[${this.stations.join(', ')}])`;
-    }
-}
-
-class ItemAddedEvent {
-    constructor (
-        public readonly item: Item) {
-    }
-
-    toString() {
-        return `ItemAdded(item=${this.item})`;
-    }
-}
-
 function ItemAdded (item: any) {
     return new ItemAddedEvent(item);
 }
-
-class Item {
-    constructor (public readonly name: string) {
-
-    }
-
-    toString() {
-        return `Item(name=${this.name})`;
-    }
-
-}
-
-type ConveyerEvent = ConveyorInitializedEvent | ItemAddedEvent
 
 class InitializedVisualizationAcc implements VisualizationAccumulator{
     constructor (private belt: Belt) {
