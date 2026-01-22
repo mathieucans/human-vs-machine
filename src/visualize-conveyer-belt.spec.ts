@@ -17,7 +17,7 @@ describe('visualize-conveyer-belt', () => {
             expect(result).toEqual(outputs)
         })
 
-        test('eventsToVisualization', () => {
+        test('visualizationToEvents', () => {
 
             const result = visualizationToEvents(outputs);
 

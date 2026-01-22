@@ -46,6 +46,6 @@ export type ConveyerEvent = ConveyorInitializedEvent | ItemAddedEvent
 export function ConveyorInitialized (belt: Belt) {
     return new ConveyorInitializedEvent(belt);
 }
-export function ItemAdded (item: any) {
+export function ItemAdded (item: Item) {
     return new ItemAddedEvent(item);
 }
