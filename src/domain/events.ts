@@ -12,13 +12,14 @@ export class ConveyorInitializedEvent {
 export class Belt {
     constructor (
         public readonly size: number,
-        public readonly stations: any[]) {
+        public readonly stations: Station[]) {
 
     }
 
     toString () {
         return `Belt(size=${this.size}, stations=[${this.stations.join(', ')}])`;
     }
+
 }
 
 export class ItemAddedEvent {
@@ -42,6 +43,20 @@ export class Item {
 
 }
 
+export class Station {
+    constructor (
+        public readonly position: number,
+        public readonly name: string,
+        public readonly size: number) {
+
+    }
+
+    toString () {
+        return `Station(position=${this.position}, name=${this.name}, size=${this.size})`;
+    }
+
+}
+
 export type ConveyerEvent = ConveyorInitializedEvent | ItemAddedEvent
 export function ConveyorInitialized (belt: Belt) {
     return new ConveyorInitializedEvent(belt);
@@ -49,3 +64,4 @@ export function ConveyorInitialized (belt: Belt) {
 export function ItemAdded (item: Item) {
     return new ItemAddedEvent(item);
 }
+

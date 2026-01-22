@@ -1,4 +1,4 @@
-import { Belt, ConveyerEvent, ConveyorInitialized, Item, ItemAdded } from "./domain/events";
+import { Belt, ConveyerEvent, ConveyorInitialized, Item, ItemAdded, Station } from "./domain/events";
 
 interface Token {
     accept(visitor: TokenVisitor): void
@@ -19,15 +19,31 @@ class ItemToken implements Token{
     }
 }
 
-function tokenBuilder (token:string) {
-    switch (token) {
-        case "_":
-            return new EmptyToken()
-        case "I(a)":
-            return new ItemToken("a")
-        default:
-            throw `Unknwon token ${token}`;
+class StationToken implements Token {
+    constructor (
+        public readonly position: number,
+        public readonly name: string,
+        public readonly size: number) {
+
     }
+
+    accept(visitor: TokenVisitor): void {
+        visitor.visitStation(this)
+    }
+
+}
+
+function tokenBuilder (token:string) {
+    if (token === "_") {
+        return new EmptyToken()
+    }
+    if (token === "I(a)") {
+        return new ItemToken("a")
+    }
+    if(token.startsWith("S")) {
+        return new StationToken(0,"s", 1)
+    }
+    throw `Unknwon token ${token}`;
 }
 
 interface TokenVisitor {
@@ -35,17 +51,24 @@ interface TokenVisitor {
     visitEmpty (token: EmptyToken): void;
 
     visitItem (token: ItemToken): void;
+
+    visitStation (token: StationToken): void;
 }
 
 class TokenToEventsVisitor implements TokenVisitor {
     private _events :ConveyerEvent[] = []
+    private readonly stations:Station[] = [];
     constructor(private readonly beltLength: number) {
-        this._events.push(ConveyorInitialized(new Belt(this.beltLength, [])))
+        this._events.push(ConveyorInitialized(new Belt(this.beltLength, this.stations)))
     }
+
     visitEmpty(token: EmptyToken): void {
     }
     visitItem(token: ItemToken): void {
         this._events.push(ItemAdded(new Item(token.name)))
+    }
+    visitStation(token: StationToken): void {
+        this.stations.push(new Station(token.position, token.name, token.size))
     }
 
     events() {
