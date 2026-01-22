@@ -2,13 +2,15 @@ import { ConveyerEvent, ConveyorInitializedEvent, ItemAddedEvent } from "./domai
 import { Belt, Item, Station } from "./domain/Entities";
 
 interface BeltElement {
+    next: BeltElement | undefined
+
     visualize (): string
 
     consume (event: ConveyerEvent): void;
 }
 
-
 class PlaceModel implements BeltElement {
+    next: BeltElement | undefined;
     private item?: Item;
 
     consume (event: ConveyerEvent): void {
@@ -25,6 +27,8 @@ class PlaceModel implements BeltElement {
 class StationModel implements BeltElement {
     constructor (private readonly station: Station) {
     }
+
+    next: BeltElement | undefined;
 
     consume (event: ConveyerEvent): void {
     }
@@ -49,6 +53,9 @@ class BeltModel {
                 this.places.push(new PlaceModel());
                 position++
             }
+            if (this.places.length > 1) {
+                this.places[this.places.length - 2]!.next = this.places[this.places.length - 1]!
+            }
         }
     }
 
@@ -57,13 +64,7 @@ class BeltModel {
     }
 
     consume (event: ConveyerEvent) {
-        if (event instanceof ItemAddedEvent) {
-            this.places[0]!.consume(event);
-        } else {
-            for (const place of this.places) {
-                place.consume(event);
-            }
-        }
+        this.places[0]!.consume(event);
     }
 }
 
