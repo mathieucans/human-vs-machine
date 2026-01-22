@@ -1,45 +1,93 @@
-import { Belt, ConveyerEvent, ConveyorInitializedEvent, ItemAddedEvent } from "./domain/events";
+import { Belt, ConveyerEvent, ConveyorInitializedEvent, Item, ItemAddedEvent, Station } from "./domain/events";
 
-class InitializedVisualizationAcc implements VisualizationAccumulator {
+interface BeltElement {
+    visualize (): string
 
-    private buildIndex = 0;
-    private readonly stringBelt:string[] = []
-    constructor (private belt: Belt) {
+    consume (event: ConveyerEvent): void;
+}
 
-    }
 
-    consume (event: ConveyerEvent): VisualizationAccumulator {
+class PlaceModel implements BeltElement {
+    private item?: Item;
+
+    consume (event: ConveyerEvent): void {
         if (event instanceof ItemAddedEvent) {
-            this.stringBelt.push("I(a)")
-            this.buildIndex++
+            this.item = event.item;
         }
-        return this;
     }
 
-    toString (): string {
-        while(this.buildIndex < this.belt.size) {
-            this.stringBelt.push("_")
-            this.buildIndex++
-        }
-        return this.stringBelt.join(" ");
+    visualize () {
+        return this.item ? "I(a)" : "_";
     }
 }
 
-interface VisualizationAccumulator {
-    consume (event: ConveyerEvent): VisualizationAccumulator
+class StationModel implements BeltElement {
+    constructor (private readonly station: Station) {
+    }
+
+    consume (event: ConveyerEvent): void {
+    }
+
+    visualize (): string {
+        return `${"S".repeat(this.station.size)}(${this.station.name})`
+    }
 }
 
-class EmptyVisualizationAcc implements VisualizationAccumulator {
+class BeltModel {
+
+    private places = new Array<BeltElement>();
+
+    constructor (belt: Belt) {
+        let position = 0;
+        while (position < belt.size) {
+            const station = belt.stations.find(s => s.position === position);
+            if (station) {
+                this.places.push(new StationModel(station))
+                position = station.size;
+            } else {
+                this.places.push(new PlaceModel());
+                position++
+            }
+        }
+    }
+
+    visualize () {
+        return this.places.map(e => e.visualize()).join(" ")
+    }
+
+    consume (event: ConveyerEvent) {
+        if (event instanceof ItemAddedEvent) {
+            this.places[0]!.consume(event);
+        } else {
+            for (const place of this.places) {
+                place.consume(event);
+            }
+        }
+    }
+}
+
+class EventsModel {
+
+    private beltModel?: BeltModel;
+
     consume (event: ConveyerEvent) {
         if (event instanceof ConveyorInitializedEvent) {
-            return new InitializedVisualizationAcc(event.belt);
+            this.beltModel = new BeltModel(event.belt);
         }
-        throw 'bad event type'
+        if (this.beltModel) {
+            this.beltModel.consume(event);
+        }
+    }
+
+    visualize () {
+        return this.beltModel?.visualize() ?? ""
     }
 }
 
 export function eventsToVisualization (events: ConveyerEvent[]) {
-    const acc = events.reduce((acc, event) => acc.consume(event),
-        new EmptyVisualizationAcc() as VisualizationAccumulator);
-    return acc.toString()
+    const eventsModel = new EventsModel();
+    for (const event of events) {
+        eventsModel.consume(event);
+    }
+    return eventsModel.visualize();
 }
