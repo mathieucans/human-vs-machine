@@ -1,4 +1,4 @@
-import { ConveyerEvent, ConveyorInitializedEvent, ItemAddedEvent } from "./domain/events";
+import { ConveyerEvent, ConveyorInitializedEvent, ItemAdded, ItemAddedEvent, Stepped, SteppedEvent } from "./domain/events";
 import { Belt, Item, Station } from "./domain/Entities";
 
 interface BeltElement {
@@ -11,11 +11,23 @@ interface BeltElement {
 
 class PlaceModel implements BeltElement {
     next: BeltElement | undefined;
-    private item?: Item;
+    private item: Item | undefined;
 
     consume (event: ConveyerEvent): void {
         if (event instanceof ItemAddedEvent) {
             this.item = event.item;
+        }
+        if (event instanceof SteppedEvent) {
+            if(this.next) {
+                this.next.consume(event);
+            }
+            if (this.item !== undefined) {
+                const item = this.item;
+                this.item = undefined;
+                if (this.next){
+                    this.next.consume(ItemAdded(item))
+                }
+            }
         }
     }
 

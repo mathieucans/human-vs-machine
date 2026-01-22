@@ -29,7 +29,7 @@ export function ItemAdded (item: Item) {
     return new ItemAddedEvent(item);
 }
 
-class SteppedEvent {
+export class SteppedEvent {
 }
 
 export const Stepped = new SteppedEvent();

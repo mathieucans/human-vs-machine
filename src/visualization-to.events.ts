@@ -1,4 +1,4 @@
-import { ConveyerEvent, ConveyorInitialized, ItemAdded } from "./domain/events";
+import { ConveyerEvent, ConveyorInitialized, ItemAdded, Stepped } from "./domain/events";
 import { Belt, Item, Station } from "./domain/Entities";
 
 interface Token {
@@ -69,8 +69,11 @@ class TokenToEventsVisitor implements TokenVisitor {
         this.beltLength++
     }
     visitItem(token: ItemToken): void {
-        this._events.push(ItemAdded(new Item(token.name)))
+        this._events = Array.of<ConveyerEvent>(ItemAdded(new Item(token.name))).concat(this._events)
         this.beltLength++
+        for (let i = 1; i < this.beltLength; i++) {
+            this._events.push(Stepped)
+        }
     }
     visitStation(token: StationToken): void {
         this.stations.push(new Station(token.position, token.name, token.size))
