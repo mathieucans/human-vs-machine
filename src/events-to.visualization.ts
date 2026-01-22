@@ -1,4 +1,5 @@
-import { Belt, ConveyerEvent, ConveyorInitializedEvent, Item, ItemAddedEvent, Station } from "./domain/events";
+import { ConveyerEvent, ConveyorInitializedEvent, ItemAddedEvent } from "./domain/events";
+import { Belt, Item, Station } from "./domain/Entities";
 
 interface BeltElement {
     visualize (): string

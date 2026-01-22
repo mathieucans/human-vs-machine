@@ -1,7 +1,8 @@
 import { describe, expect, test } from "vitest";
-import { Belt, ConveyorInitialized, Item, ItemAdded, Station, Stepped } from "./domain/events";
+import { ConveyorInitialized, ItemAdded, Stepped } from "./domain/events";
 import { visualizationToEvents } from "./visualization-to.events";
 import { eventsToVisualization } from "./events-to.visualization";
+import { Belt, Item, Station } from "./domain/Entities";
 
 describe('visualize-conveyer-belt', () => {
 

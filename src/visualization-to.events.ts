@@ -1,4 +1,5 @@
-import { Belt, ConveyerEvent, ConveyorInitialized, Item, ItemAdded, Station } from "./domain/events";
+import { ConveyerEvent, ConveyorInitialized, ItemAdded } from "./domain/events";
+import { Belt, Item, Station } from "./domain/Entities";
 
 interface Token {
     accept(visitor: TokenVisitor): void
