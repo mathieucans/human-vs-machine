@@ -43,3 +43,9 @@ export class Item {
 }
 
 export type ConveyerEvent = ConveyorInitializedEvent | ItemAddedEvent
+export function ConveyorInitialized (belt: Belt) {
+    return new ConveyorInitializedEvent(belt);
+}
+export function ItemAdded (item: any) {
+    return new ItemAddedEvent(item);
+}

@@ -1,50 +1,7 @@
 import { describe, expect, test } from "vitest";
-import { Belt, type ConveyerEvent, ConveyorInitializedEvent, Item, ItemAddedEvent } from "./domain/events";
-
-function ConveyorInitialized (belt: Belt) {
-    return new ConveyorInitializedEvent(belt);
-}
-
-function ItemAdded (item: any) {
-    return new ItemAddedEvent(item);
-}
-
-class InitializedVisualizationAcc implements VisualizationAccumulator{
-    constructor (private belt: Belt) {
-
-    }
-
-    consume(event: ConveyerEvent): VisualizationAccumulator {
-        return this;
-    }
-
-    toString() : string {
-        return Array.from( { length: this.belt.size }, () => "_" ).join(" ");
-    }
-}
-
-interface VisualizationAccumulator {
-    consume (event: ConveyerEvent) : VisualizationAccumulator
-}
-
-class EmptyVisualizationAcc implements VisualizationAccumulator {
-    consume (event: ConveyerEvent) {
-        if (event instanceof ConveyorInitializedEvent) {
-            return new InitializedVisualizationAcc(event.belt);
-        }
-        throw 'bad event type'
-    }
-}
-
-function eventsToVisualization (events: ConveyerEvent[]) {
-    const acc = events.reduce((acc, event) => acc.consume(event),
-        new EmptyVisualizationAcc() as VisualizationAccumulator);
-    return acc.toString()
-}
-function visualizationToEvents (outputs: string) {
-    const tokens = outputs.split(" ")
-    return [ConveyorInitialized(new Belt(tokens.length, []))]
-}
+import { Belt, ConveyorInitialized, Item, ItemAdded } from "./domain/events";
+import { visualizationToEvents } from "./visualization-to.events";
+import { eventsToVisualization } from "./events-to.visualization";
 
 describe('visualize-conveyer-belt', () => {
     describe.each([
