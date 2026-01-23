@@ -33,12 +33,32 @@ class StationToken implements Token {
     }
 
 }
+
+class EmptyTokenWithItemsLeft implements Token {
+    leftItems: ItemToken[] = []
+    accept(visitor: TokenVisitor): void {
+        visitor.visitLastEmptyToken(this)
+    }
+
+    addLeftItem (itemToken: ItemToken) {
+        this.leftItems.push(itemToken)
+    }
+}
+
 // previousValue: T, currentValue: T, currentIndex: number, array: T[]) => T
-function tokenBuilder (previous: Token[], token:string) {
+function reduceToTokenList (previous: Token[], token:string) {
     if (token === "_") {
         return previous.concat(new EmptyToken())
     }
+    if (token === "_:") {
+        return previous.concat(new EmptyTokenWithItemsLeft())
+    }
     if (token === "I(a)") {
+        const lastToken = previous[previous.length-1];
+        if(lastToken instanceof EmptyTokenWithItemsLeft) {
+            lastToken.addLeftItem(new ItemToken("a"))
+            return previous
+        }
         return previous.concat(new ItemToken("a"))
     }
     if(token.startsWith("S")) {
@@ -58,16 +78,18 @@ interface TokenVisitor {
     visitItem (token: ItemToken): void;
 
     visitStation (token: StationToken): void;
+
+    visitLastEmptyToken (token: EmptyTokenWithItemsLeft): void;
 }
 
 class TokenToEventsVisitor implements TokenVisitor {
     private _events :ConveyerEvent[] = []
     private readonly stations:Station[] = [];
     private  beltLength: number = 0
-
     visitEmpty(token: EmptyToken): void {
         this.beltLength++
     }
+
     visitItem(token: ItemToken): void {
         this._events = Array.of<ConveyerEvent>(ItemAdded(new Item(token.name))).concat(this._events)
         this.beltLength++
@@ -80,6 +102,16 @@ class TokenToEventsVisitor implements TokenVisitor {
         this.beltLength+=token.size;
     }
 
+    visitLastEmptyToken(token: EmptyTokenWithItemsLeft): void {
+        this.beltLength++
+        for (const leftItem of token.leftItems) {
+            this._events = Array.of<ConveyerEvent>(ItemAdded(new Item(leftItem.name))).concat(this._events)
+            for (let i = 1; i < this.beltLength+1; i++) {
+                this._events.push(Stepped)
+            }
+        }
+    }
+
     events() {
         const conveyorInitializedEvents: ConveyerEvent[] = [ConveyorInitialized(new Belt(this.beltLength, this.stations))];
         return conveyorInitializedEvents.concat(this._events)
@@ -87,7 +119,7 @@ class TokenToEventsVisitor implements TokenVisitor {
 }
 
 export function visualizationToEvents (outputs: string) {
-    const tokens = outputs.split(" ").reduce(tokenBuilder, [])
+    const tokens = outputs.split(" ").reduce(reduceToTokenList, [])
     const tokenVisitor = new TokenToEventsVisitor();
     tokens.forEach(token => token.accept(tokenVisitor))
     return tokenVisitor.events()
