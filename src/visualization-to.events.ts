@@ -33,20 +33,20 @@ class StationToken implements Token {
     }
 
 }
-
-function tokenBuilder (token:string) {
+// previousValue: T, currentValue: T, currentIndex: number, array: T[]) => T
+function tokenBuilder (previous: Token[], token:string) {
     if (token === "_") {
-        return new EmptyToken()
+        return previous.concat(new EmptyToken())
     }
     if (token === "I(a)") {
-        return new ItemToken("a")
+        return previous.concat(new ItemToken("a"))
     }
     if(token.startsWith("S")) {
         let size = 0;
         while (size < token.length && token.at(size) === "S") {
             size++;
         }
-        return new StationToken(0,"s", size)
+        return previous.concat(new StationToken(0,"s", size))
     }
     throw `Unknwon token ${token}`;
 }
@@ -87,7 +87,7 @@ class TokenToEventsVisitor implements TokenVisitor {
 }
 
 export function visualizationToEvents (outputs: string) {
-    const tokens = outputs.split(" ").map(tokenBuilder)
+    const tokens = outputs.split(" ").reduce(tokenBuilder, [])
     const tokenVisitor = new TokenToEventsVisitor();
     tokens.forEach(token => token.accept(tokenVisitor))
     return tokenVisitor.events()
