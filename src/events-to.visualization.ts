@@ -68,7 +68,7 @@ class LastElement implements BeltElement {
 
     consume (event: ConveyerEvent): void {
         if (event instanceof ItemAddedEvent) {
-            this.leftItems.push(event.item);
+            this.leftItems = Array.of(event.item).concat(this.leftItems);
         }
     }
 }

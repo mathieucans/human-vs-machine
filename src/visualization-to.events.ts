@@ -41,11 +41,10 @@ class EmptyTokenWithItemsLeft implements Token {
     }
 
     addLeftItem (itemToken: ItemToken) {
-        this.leftItems.push(itemToken)
+        this.leftItems = Array.of(itemToken).concat(this.leftItems)
     }
 }
 
-// previousValue: T, currentValue: T, currentIndex: number, array: T[]) => T
 function reduceToTokenList (previous: Token[], token:string) {
     if (token === "_") {
         return previous.concat(new EmptyToken())
@@ -53,13 +52,14 @@ function reduceToTokenList (previous: Token[], token:string) {
     if (token === "_:") {
         return previous.concat(new EmptyTokenWithItemsLeft())
     }
-    if (token === "I(a)") {
+    if (token.startsWith("I(")) {
+        const name = token.slice(2, token.length - 1)
         const lastToken = previous[previous.length-1];
         if(lastToken instanceof EmptyTokenWithItemsLeft) {
-            lastToken.addLeftItem(new ItemToken("a"))
+            lastToken.addLeftItem(new ItemToken(name))
             return previous
         }
-        return previous.concat(new ItemToken("a"))
+        return previous.concat(new ItemToken(name))
     }
     if(token.startsWith("S")) {
         let size = 0;
@@ -91,7 +91,7 @@ class TokenToEventsVisitor implements TokenVisitor {
     }
 
     visitItem(token: ItemToken): void {
-        this._events = Array.of<ConveyerEvent>(ItemAdded(new Item(token.name))).concat(this._events)
+        this._events.push(ItemAdded(new Item(token.name)))
         this.beltLength++
         for (let i = 1; i < this.beltLength; i++) {
             this._events.push(Stepped)
@@ -105,11 +105,13 @@ class TokenToEventsVisitor implements TokenVisitor {
     visitLastEmptyToken(token: EmptyTokenWithItemsLeft): void {
         this.beltLength++
         for (const leftItem of token.leftItems) {
-            this._events = Array.of<ConveyerEvent>(ItemAdded(new Item(leftItem.name))).concat(this._events)
-            for (let i = 1; i < this.beltLength+1; i++) {
-                this._events.push(Stepped)
-            }
+            this._events.push(ItemAdded(new Item(leftItem.name)))
+            this._events.push(Stepped)
         }
+        for (let i = 1; i < this.beltLength; i++) {
+            this._events.push(Stepped)
+        }
+
     }
 
     events() {
