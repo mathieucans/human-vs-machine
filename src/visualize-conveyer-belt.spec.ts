@@ -7,12 +7,12 @@ import { Belt, Item, Station } from "./domain/Entities";
 describe('visualize-conveyer-belt', () => {
 
     describe.each([
-        [[ConveyorInitialized(new Belt(3, []))], "_ _ _"],
-        [[ConveyorInitialized(new Belt(4, []))], "_ _ _ _"],
-        [[ConveyorInitialized(new Belt(3, [])), ItemAdded(new Item("a"))], "I(a) _ _"],
-        [[ConveyorInitialized(new Belt(3, [new Station(0, "s", 1)]))], "S(s) _ _"],
-        [[ConveyorInitialized(new Belt(3, [new Station(0, "s", 3)]))], "SSS(s)"],
-        [[ConveyorInitialized(new Belt(3, [])), ItemAdded(new Item("a")), Stepped, Stepped], "_ _ I(a)"],
+            [[ConveyorInitialized(new Belt(3, []))], "_ _ _"],
+            [[ConveyorInitialized(new Belt(4, []))], "_ _ _ _"],
+            [[ConveyorInitialized(new Belt(3, [])), ItemAdded(new Item("a"))], "I(a) _ _"],
+            [[ConveyorInitialized(new Belt(3, [new Station(0, "s", 1)]))], "S(s) _ _"],
+            [[ConveyorInitialized(new Belt(3, [new Station(0, "s", 3)]))], "SSS(s)"],
+            [[ConveyorInitialized(new Belt(3, [])), ItemAdded(new Item("a")), Stepped, Stepped], "_ _ I(a)"],
         [[
             ConveyorInitialized(new Belt(3, [])),
             ItemAdded(new Item("a")),

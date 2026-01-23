@@ -18,13 +18,13 @@ class PlaceModel implements BeltElement {
             this.item = event.item;
         }
         if (event instanceof SteppedEvent) {
-            if(this.next) {
+            if (this.next) {
                 this.next.consume(event);
             }
             if (this.item !== undefined) {
                 const item = this.item;
                 this.item = undefined;
-                if (this.next){
+                if (this.next) {
                     this.next.consume(ItemAdded(item))
                 }
             }
@@ -50,6 +50,29 @@ class StationModel implements BeltElement {
     }
 }
 
+class LastElement implements BeltElement {
+    next: BeltElement | undefined;
+
+    constructor (private readonly element:BeltElement) {
+        element.next = this
+    }
+
+    private leftItems = Array<Item>();
+
+    visualize (): string {
+        if (this.leftItems.length > 0) {
+            return this.element.visualize() + ": " + this.leftItems.map(i => `I(${i.name})`).join(" ");
+        }
+        return this.element.visualize();
+    }
+
+    consume (event: ConveyerEvent): void {
+        if (event instanceof ItemAddedEvent) {
+            this.leftItems.push(event.item);
+        }
+    }
+}
+
 class BeltModel {
 
     private places = new Array<BeltElement>();
@@ -65,14 +88,23 @@ class BeltModel {
                 this.places.push(new PlaceModel());
                 position++
             }
-            if (this.places.length > 1) {
-                this.places[this.places.length - 2]!.next = this.places[this.places.length - 1]!
-            }
+        }
+
+        // Link all element
+        for (let i = 0; i < this.places.length - 1; i++) {
+            this.places[i]!.next = this.places[i + 1]
+        }
+
+        // Substitute last element
+        if(position > 0) {
+            this.places.push(new LastElement(this.places.pop()!))
         }
     }
 
     visualize () {
-        return this.places.map(e => e.visualize()).join(" ")
+        return this.places.map(e => e.visualize())
+            .filter(v => v !== "")
+            .join(" ")
     }
 
     consume (event: ConveyerEvent) {
