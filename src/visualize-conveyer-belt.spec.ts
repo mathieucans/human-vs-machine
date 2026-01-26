@@ -1,10 +1,13 @@
 import { describe, expect, test } from "vitest";
-import { ConveyorInitialized, ItemAdded, Stepped } from "./domain/events";
+import { ConveyorInitialized, ItemAdded, ItemEnteredStation, ItemLeftStation, Stepped } from "./domain/events";
 import { visualizationToEvents } from "./visualization-to.events";
 import { eventsToVisualization } from "./events-to.visualization";
 import { Belt, Item, Station } from "./domain/Entities";
 
 describe('visualize-conveyer-belt', () => {
+
+    const itemI = new Item("i")
+    const stationA2 = new Station(0, "a", 2)
 
     describe.each([
         [[ConveyorInitialized(new Belt(3, []))], "_ _ _"],
@@ -29,6 +32,12 @@ describe('visualize-conveyer-belt', () => {
             Stepped,
             Stepped
         ], `_ _ _: I(b) I(a)`],
+        [            [
+            ConveyorInitialized(new Belt(4, [stationA2])),
+            ItemAdded(itemI),
+            ItemEnteredStation(itemI, stationA2),
+            ItemLeftStation(itemI, stationA2)
+        ], `SS(a)I(i) _ _`]
     ])
     ('%s <-> %s', (events, outputs) => {
         test('eventsToVisualization', () => {

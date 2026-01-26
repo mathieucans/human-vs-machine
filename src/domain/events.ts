@@ -1,4 +1,4 @@
-import { Belt, Item } from "./Entities";
+import { Belt, Item, Station } from "./Entities";
 
 export class ConveyorInitializedEvent {
     constructor (
@@ -33,3 +33,29 @@ export class SteppedEvent {
 }
 
 export const Stepped = new SteppedEvent();
+
+class ItemEnteredStationEvent {
+    constructor (
+        public readonly item: Item,
+        public readonly station: Station) {
+
+    }
+
+}
+
+export function ItemEnteredStation(item:Item, station: Station){
+    return new ItemEnteredStationEvent(item, station);
+}
+
+class ItemLeftStationEvent {
+    constructor (
+        public readonly item: Item,
+        public readonly station: Station) {
+
+    }
+
+}
+
+export function ItemLeftStation(item:Item, station: Station){
+    return new ItemLeftStationEvent(item, station);
+}
