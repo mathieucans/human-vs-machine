@@ -1,4 +1,4 @@
-import { ConveyerEvent, ConveyorInitialized, ItemAdded, Stepped } from "./domain/events";
+import { ConveyerEvent, ConveyorInitialized, ItemAdded, ItemEnteredStation, ItemEnteredStationEvent, ItemLeftStation, Stepped } from "./domain/events";
 import { Belt, Item, Station } from "./domain/Entities";
 
 interface Token {
@@ -21,6 +21,8 @@ class ItemToken implements Token{
 }
 
 class StationToken implements Token {
+    itemAtSamePosition : ItemToken | undefined;
+
     constructor (
         public readonly position: number,
         public readonly name: string,
@@ -62,11 +64,22 @@ function reduceToTokenList (previous: Token[], token:string) {
         return previous.concat(new ItemToken(name))
     }
     if(token.startsWith("S")) {
-        let size = 0;
-        while (size < token.length && token.at(size) === "S") {
-            size++;
+        let index = 0;
+        while (index < token.length && token.at(index) === "S") {
+            index++;
         }
-        return previous.concat(new StationToken(0,"s", size))
+        const size = index;
+        const endNameIndex = token.indexOf(')');
+        const name = token.substring(index+1, endNameIndex);
+        const stationToken = new StationToken(0,name, size);
+
+        if(endNameIndex+1 < token.length) {
+            stationToken.itemAtSamePosition = new ItemToken("i");
+        }
+
+        return previous.concat(
+            stationToken
+        )
     }
     throw `Unknwon token ${token}`;
 }
@@ -98,8 +111,17 @@ class TokenToEventsVisitor implements TokenVisitor {
         }
     }
     visitStation(token: StationToken): void {
-        this.stations.push(new Station(token.position, token.name, token.size))
+        const station = new Station(token.position, token.name, token.size);
+        this.stations.push(station)
         this.beltLength+=token.size;
+
+        if( token.itemAtSamePosition ){
+            const item = new Item(token.itemAtSamePosition.name);
+            this._events.push(
+                ItemAdded(item),
+                ItemEnteredStation(item, station),
+                ItemLeftStation(item, station))
+        }
     }
 
     visitLastEmptyToken(token: EmptyTokenWithItemsLeft): void {
