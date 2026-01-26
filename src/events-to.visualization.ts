@@ -1,4 +1,4 @@
-import { ConveyerEvent, ConveyorInitializedEvent, ItemAdded, ItemAddedEvent, Stepped, SteppedEvent } from "./domain/events";
+import { ConveyerEvent, ConveyorInitializedEvent, ItemAdded, ItemAddedEvent, ItemEnteredStation, ItemEnteredStationEvent, Stepped, SteppedEvent } from "./domain/events";
 import { Belt, Item, Station } from "./domain/Entities";
 
 interface BeltElement {
@@ -7,6 +7,10 @@ interface BeltElement {
     visualize (): string
 
     consume (event: ConveyerEvent): void;
+}
+
+function itemVisualization (item: Item) {
+    return `I(${item.name})`;
 }
 
 class PlaceModel implements BeltElement {
@@ -32,7 +36,7 @@ class PlaceModel implements BeltElement {
     }
 
     visualize () {
-        return this.item ? "I(a)" : "_";
+        return this.item ? itemVisualization(this.item) : "_";
     }
 }
 
@@ -42,11 +46,26 @@ class StationModel implements BeltElement {
 
     next: BeltElement | undefined;
 
+    processingItem : Item | undefined;
+    itemAtSamePosition : Item | undefined;
+
     consume (event: ConveyerEvent): void {
+        if (event instanceof ItemEnteredStationEvent) {
+            this.processingItem = event.item;
+        }
+        if (event instanceof ItemEnteredStationEvent) {
+            this.processingItem = undefined;
+            this.itemAtSamePosition = event.item
+        }
+
     }
 
     visualize (): string {
-        return `${"S".repeat(this.station.size)}(${this.station.name})`
+        const station = `${"S".repeat(this.station.size)}(${this.station.name})`;
+        if( this.itemAtSamePosition ) {
+            return station+itemVisualization(this.itemAtSamePosition);
+        }
+        return station
     }
 }
 

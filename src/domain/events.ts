@@ -34,7 +34,7 @@ export class SteppedEvent {
 
 export const Stepped = new SteppedEvent();
 
-class ItemEnteredStationEvent {
+export class ItemEnteredStationEvent {
     constructor (
         public readonly item: Item,
         public readonly station: Station) {
@@ -47,7 +47,7 @@ export function ItemEnteredStation(item:Item, station: Station){
     return new ItemEnteredStationEvent(item, station);
 }
 
-class ItemLeftStationEvent {
+export class ItemLeftStationEvent {
     constructor (
         public readonly item: Item,
         public readonly station: Station) {
