@@ -34,6 +34,11 @@ export class SteppedEvent {
 
 export const Stepped = new SteppedEvent();
 
+export class PausedEvent {
+}
+
+export const Paused = new PausedEvent();
+
 export class ItemEnteredStationEvent {
     constructor (
         public readonly item: Item,

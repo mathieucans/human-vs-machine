@@ -1,4 +1,4 @@
-import { ConveyerEvent, ConveyorInitialized, ItemAdded, ItemEnteredStation, ItemEnteredStationEvent, ItemLeftStation, Stepped } from "./domain/events";
+import { ConveyerEvent, ConveyorInitialized, ItemAdded, ItemEnteredStation, ItemEnteredStationEvent, ItemLeftStation, Paused, Stepped } from "./domain/events";
 import { Belt, Item, Station } from "./domain/Entities";
 
 interface Token {
@@ -22,6 +22,7 @@ class ItemToken implements Token {
 
 class StationToken implements Token {
     itemAtSamePosition: ItemToken | undefined;
+    processingItem: ItemToken | undefined;
 
     constructor (
         public readonly position: number,
@@ -48,6 +49,11 @@ class EmptyTokenWithItemsLeft implements Token {
     }
 }
 
+function extractName (token: string, index: number) {
+    const endNameIndex = token.indexOf(')', index);
+    const name = token.substring(index + 1, endNameIndex);
+    return name;
+}
 function reduceToTokenList (previous: Token[], token: string) {
     if (token === "_") {
         return previous.concat(new EmptyToken())
@@ -70,11 +76,19 @@ function reduceToTokenList (previous: Token[], token: string) {
             index++;
         }
         const size = index;
-        const endNameIndex = token.indexOf(')');
-        const name = token.substring(index + 1, endNameIndex);
+        let processingItem:ItemToken|undefined =undefined
+        if(token.substring(index).startsWith("[I(")){
+            index += 2
+            const itemName = extractName(token, index);
+            processingItem =  new ItemToken(itemName);
+            index+=itemName.length + 3
+        }
+        const name = extractName(token, index);
         const stationToken = new StationToken(previous.length, name, size);
+        stationToken.processingItem = processingItem;
+        index+= name.length + 1;
 
-        if (endNameIndex + 1 < token.length) {
+        if (index + 1 < token.length) {
             stationToken.itemAtSamePosition = new ItemToken("i");
         }
 
@@ -129,6 +143,16 @@ class TokenToEventsVisitor implements TokenVisitor {
         const station = new Station(token.position, token.name, token.size);
         this.stations.push(station)
         this.beltLength += token.size;
+
+        if (token.processingItem) {
+            const item = new Item(token.processingItem.name);
+            this._events.push(
+                ItemAdded(item),
+                Stepped,
+                ItemEnteredStation(item, station),
+                Paused
+            )
+        }
 
         if (token.itemAtSamePosition) {
             const item = new Item(token.itemAtSamePosition.name);

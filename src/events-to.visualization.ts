@@ -1,4 +1,4 @@
-import { ConveyerEvent, ConveyorInitializedEvent, ItemAdded, ItemAddedEvent, ItemEnteredStation, ItemEnteredStationEvent, Stepped, SteppedEvent } from "./domain/events";
+import { ConveyerEvent, ConveyorInitializedEvent, ItemAdded, ItemAddedEvent, ItemEnteredStationEvent, ItemLeftStationEvent, SteppedEvent } from "./domain/events";
 import { Belt, Item, Station } from "./domain/Entities";
 
 interface BeltElement {
@@ -20,19 +20,23 @@ class PlaceModel implements BeltElement {
     consume (event: ConveyerEvent): void {
         if (event instanceof ItemAddedEvent) {
             this.item = event.item;
-        }
-        if (event instanceof SteppedEvent) {
+        } else {
+            // Profondeur d'abord pour libérer la plase
             if (this.next) {
                 this.next.consume(event);
             }
-            if (this.item !== undefined) {
-                const item = this.item;
-                this.item = undefined;
-                if (this.next) {
-                    this.next.consume(ItemAdded(item))
+            if (event instanceof SteppedEvent) {
+
+                if (this.item !== undefined) {
+                    const item = this.item;
+                    this.item = undefined;
+                    if (this.next) {
+                        this.next.consume(ItemAdded(item))
+                    }
                 }
             }
         }
+
     }
 
     visualize () {
@@ -46,14 +50,14 @@ class StationModel implements BeltElement {
 
     next: BeltElement | undefined;
 
-    processingItem : Item | undefined;
-    itemAtSamePosition : Item | undefined;
+    processingItem: Item | undefined;
+    itemAtSamePosition: Item | undefined;
 
     consume (event: ConveyerEvent): void {
         if (event instanceof ItemEnteredStationEvent) {
             this.processingItem = event.item;
         }
-        if (event instanceof ItemEnteredStationEvent) {
+        if (event instanceof ItemLeftStationEvent) {
             this.processingItem = undefined;
             this.itemAtSamePosition = event.item
         }
@@ -66,18 +70,21 @@ class StationModel implements BeltElement {
     }
 
     visualize (): string {
-        const station = `${"S".repeat(this.station.size)}(${this.station.name})`;
-        if( this.itemAtSamePosition ) {
-            return station+itemVisualization(this.itemAtSamePosition);
+        const repeatS = "S".repeat(this.station.size);
+        if (this.processingItem) {
+            return `${repeatS}[${itemVisualization(this.processingItem)}](${this.station.name})`
         }
-        return station
+        if (this.itemAtSamePosition) {
+            return `${repeatS}(${this.station.name})${itemVisualization(this.itemAtSamePosition)}`;
+        }
+        return `${repeatS}(${this.station.name})`
     }
 }
 
 class LastElement implements BeltElement {
     next: BeltElement | undefined;
 
-    constructor (private readonly element:BeltElement) {
+    constructor (private readonly element: BeltElement) {
         element.next = this
     }
 
@@ -120,7 +127,7 @@ class BeltModel {
         }
 
         // Substitute last element
-        if(position > 0) {
+        if (position > 0) {
             this.places.push(new LastElement(this.places.pop()!))
         }
     }
