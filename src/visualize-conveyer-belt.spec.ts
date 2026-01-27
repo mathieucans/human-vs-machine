@@ -61,4 +61,34 @@ describe('visualize-conveyer-belt', () => {
             expect(result).toEqual(events)
         })
     })
+
+    describe("Adding paused and resumed : ", () => {
+
+        const station1 = new Station(1, "s1", 1)
+        const station2 = new Station(2, "s2", 2)
+        const belt = new Belt(4, [station1, station2])
+        const item1 = new Item("i1")
+        const item2 = new Item("i2")
+        describe.each([
+            [[ConveyorInitialized(belt)], "_ S(s1) SS(s2)"],
+        ])
+        ('%s <-> %s', (events, outputs) => {
+            test('eventsToVisualization', () => {
+
+                const result = eventsToVisualization(events);
+
+                expect(result).toEqual(outputs)
+            })
+
+            test('visualizationToEvents', () => {
+
+                const result = visualizationToEvents(outputs);
+
+                expect(result).toEqual(events)
+            })
+        })
+    })
+
 });
+
+

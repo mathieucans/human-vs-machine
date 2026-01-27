@@ -72,7 +72,7 @@ function reduceToTokenList (previous: Token[], token: string) {
         const size = index;
         const endNameIndex = token.indexOf(')');
         const name = token.substring(index + 1, endNameIndex);
-        const stationToken = new StationToken(0, name, size);
+        const stationToken = new StationToken(previous.length, name, size);
 
         if (endNameIndex + 1 < token.length) {
             stationToken.itemAtSamePosition = new ItemToken("i");

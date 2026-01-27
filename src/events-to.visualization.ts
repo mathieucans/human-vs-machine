@@ -107,7 +107,7 @@ class BeltModel {
             const station = belt.stations.find(s => s.position === position);
             if (station) {
                 this.places.push(new StationModel(station))
-                position = station.size;
+                position += station.size;
             } else {
                 this.places.push(new PlaceModel());
                 position++
