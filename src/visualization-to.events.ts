@@ -50,10 +50,64 @@ class EmptyTokenWithItemsLeft implements Token {
 }
 
 function extractName (token: string, index: number) {
+    if (token.at(index) !== "(") {
+        throw 'Invalid character' + token.at(index)
+    }
     const endNameIndex = token.indexOf(')', index);
     const name = token.substring(index + 1, endNameIndex);
     return name;
 }
+
+class StationTokenReader {
+    private index = 0
+    constructor (private token: string) {
+
+    }
+
+    readSize () {
+        while (this.index < this.token.length && this.token.at(this.index) === "S") {
+            this.index++;
+        }
+        return this.index
+    }
+
+    readProcessingTokenIfAny () {
+        if(this.token.substring(this.index).startsWith("[")){
+            this.index ++;
+            const itemName = extractName(this.token, ++this.index);
+            this.index+=itemName.length + 3
+            return new ItemToken(itemName);
+        }
+        return undefined;
+    }
+
+    readStationName () {
+        const name = extractName(this.token, this.index);
+        this.index += name.length + 2
+        return name;
+    }
+
+    readItemIfAny () {
+        if (this.char() === "I") {
+            return  new ItemToken(this.readName2());
+        }
+        return undefined;
+    }
+
+    private readName2() {
+        if (this.token.at(this.index) !== "(") {
+            throw 'Invalid character' + this.token.at(this.index)
+        }
+        const endNameIndex = this.token.indexOf(')', this.index);
+        const name = this.token.substring(this.index + 1, endNameIndex);
+        return name;
+    }
+
+    private char () {
+        return this.token.at(this.index++);
+    }
+}
+
 function reduceToTokenList (previous: Token[], token: string) {
     if (token === "_") {
         return previous.concat(new EmptyToken())
@@ -62,7 +116,7 @@ function reduceToTokenList (previous: Token[], token: string) {
         return previous.concat(new EmptyTokenWithItemsLeft())
     }
     if (token.startsWith("I(")) {
-        const name = token.slice(2, token.length - 1)
+        const name = extractName(token, 1);
         const lastToken = previous[previous.length - 1];
         if (lastToken instanceof EmptyTokenWithItemsLeft) {
             lastToken.addLeftItem(new ItemToken(name))
@@ -71,27 +125,13 @@ function reduceToTokenList (previous: Token[], token: string) {
         return previous.concat(new ItemToken(name))
     }
     if (token.startsWith("S")) {
-        let index = 0;
-        while (index < token.length && token.at(index) === "S") {
-            index++;
-        }
-        const size = index;
-        let processingItem:ItemToken|undefined =undefined
-        if(token.substring(index).startsWith("[I(")){
-            index += 2
-            const itemName = extractName(token, index);
-            processingItem =  new ItemToken(itemName);
-            index+=itemName.length + 3
-        }
-        const name = extractName(token, index);
+        const reader = new StationTokenReader(token)
+        const size = reader.readSize();
+        const processingItem = reader.readProcessingTokenIfAny()
+        const name = reader.readStationName()
         const stationToken = new StationToken(previous.length, name, size);
         stationToken.processingItem = processingItem;
-        index+= name.length + 1;
-
-        if (index + 1 < token.length) {
-            stationToken.itemAtSamePosition = new ItemToken("i");
-        }
-
+        stationToken.itemAtSamePosition = reader.readItemIfAny()
         return previous.concat(
             stationToken
         )
