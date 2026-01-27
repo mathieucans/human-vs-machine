@@ -32,12 +32,19 @@ describe('visualize-conveyer-belt', () => {
             Stepped,
             Stepped
         ], `_ _ _: I(b) I(a)`],
-        [            [
+        [[
             ConveyorInitialized(new Belt(4, [stationA2])),
             ItemAdded(itemI),
             ItemEnteredStation(itemI, stationA2),
             ItemLeftStation(itemI, stationA2)
-        ], `SS(a)I(i) _ _`]
+        ], `SS(a)I(i) _ _`],
+        [[
+            ConveyorInitialized(new Belt(4, [stationA2])),
+            ItemAdded(itemI),
+            ItemEnteredStation(itemI, stationA2),
+            ItemLeftStation(itemI, stationA2),
+            Stepped
+        ], "SS(a) I(i) _"]
     ])
     ('%s <-> %s', (events, outputs) => {
         test('eventsToVisualization', () => {

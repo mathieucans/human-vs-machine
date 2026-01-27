@@ -57,7 +57,12 @@ class StationModel implements BeltElement {
             this.processingItem = undefined;
             this.itemAtSamePosition = event.item
         }
-
+        if (event instanceof SteppedEvent) {
+            if (this.itemAtSamePosition && this.next) {
+                this.next.consume(ItemAdded(this.itemAtSamePosition))
+                this.itemAtSamePosition = undefined;
+            }
+        }
     }
 
     visualize (): string {

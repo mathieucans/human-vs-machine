@@ -2,26 +2,26 @@ import { ConveyerEvent, ConveyorInitialized, ItemAdded, ItemEnteredStation, Item
 import { Belt, Item, Station } from "./domain/Entities";
 
 interface Token {
-    accept(visitor: TokenVisitor): void
+    accept (visitor: TokenVisitor): void
 }
 
 class EmptyToken implements Token {
-    accept(visitor: TokenVisitor): void {
+    accept (visitor: TokenVisitor): void {
         visitor.visitEmpty(this)
     }
 }
 
-class ItemToken implements Token{
+class ItemToken implements Token {
     constructor (public readonly name: string) {
     }
 
-    accept(visitor: TokenVisitor): void {
+    accept (visitor: TokenVisitor): void {
         visitor.visitItem(this)
     }
 }
 
 class StationToken implements Token {
-    itemAtSamePosition : ItemToken | undefined;
+    itemAtSamePosition: ItemToken | undefined;
 
     constructor (
         public readonly position: number,
@@ -30,7 +30,7 @@ class StationToken implements Token {
 
     }
 
-    accept(visitor: TokenVisitor): void {
+    accept (visitor: TokenVisitor): void {
         visitor.visitStation(this)
     }
 
@@ -38,7 +38,8 @@ class StationToken implements Token {
 
 class EmptyTokenWithItemsLeft implements Token {
     leftItems: ItemToken[] = []
-    accept(visitor: TokenVisitor): void {
+
+    accept (visitor: TokenVisitor): void {
         visitor.visitLastEmptyToken(this)
     }
 
@@ -47,7 +48,7 @@ class EmptyTokenWithItemsLeft implements Token {
     }
 }
 
-function reduceToTokenList (previous: Token[], token:string) {
+function reduceToTokenList (previous: Token[], token: string) {
     if (token === "_") {
         return previous.concat(new EmptyToken())
     }
@@ -56,24 +57,24 @@ function reduceToTokenList (previous: Token[], token:string) {
     }
     if (token.startsWith("I(")) {
         const name = token.slice(2, token.length - 1)
-        const lastToken = previous[previous.length-1];
-        if(lastToken instanceof EmptyTokenWithItemsLeft) {
+        const lastToken = previous[previous.length - 1];
+        if (lastToken instanceof EmptyTokenWithItemsLeft) {
             lastToken.addLeftItem(new ItemToken(name))
             return previous
         }
         return previous.concat(new ItemToken(name))
     }
-    if(token.startsWith("S")) {
+    if (token.startsWith("S")) {
         let index = 0;
         while (index < token.length && token.at(index) === "S") {
             index++;
         }
         const size = index;
         const endNameIndex = token.indexOf(')');
-        const name = token.substring(index+1, endNameIndex);
-        const stationToken = new StationToken(0,name, size);
+        const name = token.substring(index + 1, endNameIndex);
+        const stationToken = new StationToken(0, name, size);
 
-        if(endNameIndex+1 < token.length) {
+        if (endNameIndex + 1 < token.length) {
             stationToken.itemAtSamePosition = new ItemToken("i");
         }
 
@@ -96,26 +97,40 @@ interface TokenVisitor {
 }
 
 class TokenToEventsVisitor implements TokenVisitor {
-    private _events :ConveyerEvent[] = []
-    private readonly stations:Station[] = [];
-    private  beltLength: number = 0
-    visitEmpty(token: EmptyToken): void {
+    private _events: ConveyerEvent[] = []
+    private readonly stations: Station[] = [];
+    private beltLength: number = 0
+
+    visitEmpty (token: EmptyToken): void {
         this.beltLength++
     }
 
-    visitItem(token: ItemToken): void {
-        this._events.push(ItemAdded(new Item(token.name)))
+    visitItem (token: ItemToken): void {
+        const item = new Item(token.name);
+        this._events.push(ItemAdded(item))
+        const itemFinalPosition = this.beltLength;
         this.beltLength++
-        for (let i = 1; i < this.beltLength; i++) {
+        let itemPosition = 0;
+
+        this.stations.filter(station => station.position < itemFinalPosition)
+            .forEach(station => {
+                this._events.push(ItemEnteredStation(item, station));
+                this._events.push(ItemLeftStation(item, station));
+                itemPosition += station.position + station.size -1;
+            })
+
+        while (itemPosition < itemFinalPosition) {
             this._events.push(Stepped)
+            itemPosition++;
         }
     }
-    visitStation(token: StationToken): void {
+
+    visitStation (token: StationToken): void {
         const station = new Station(token.position, token.name, token.size);
         this.stations.push(station)
-        this.beltLength+=token.size;
+        this.beltLength += token.size;
 
-        if( token.itemAtSamePosition ){
+        if (token.itemAtSamePosition) {
             const item = new Item(token.itemAtSamePosition.name);
             this._events.push(
                 ItemAdded(item),
@@ -124,7 +139,7 @@ class TokenToEventsVisitor implements TokenVisitor {
         }
     }
 
-    visitLastEmptyToken(token: EmptyTokenWithItemsLeft): void {
+    visitLastEmptyToken (token: EmptyTokenWithItemsLeft): void {
         this.beltLength++
         for (const leftItem of token.leftItems) {
             this._events.push(ItemAdded(new Item(leftItem.name)))
@@ -136,7 +151,7 @@ class TokenToEventsVisitor implements TokenVisitor {
 
     }
 
-    events() {
+    events () {
         const conveyorInitializedEvents: ConveyerEvent[] = [ConveyorInitialized(new Belt(this.beltLength, this.stations))];
         return conveyorInitializedEvents.concat(this._events)
     }
