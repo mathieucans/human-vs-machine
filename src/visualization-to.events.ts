@@ -1,4 +1,4 @@
-import { ConveyerEvent, ConveyorInitialized, ItemAdded, ItemEnteredStation, ItemEnteredStationEvent, ItemLeftStation, Paused, Stepped } from "./domain/events";
+import { ConveyerEvent, ConveyorInitialized, ItemAdded, ItemEnteredStation, ItemLeftStation, Paused, Stepped } from "./domain/events";
 import { Belt, Item, Station } from "./domain/Entities";
 
 interface Token {
@@ -82,24 +82,27 @@ class StationTokenReader {
     }
 
     readStationName () {
-        const name = extractName(this.token, this.index);
-        this.index += name.length + 2
-        return name;
+        return this.readName();
     }
 
     readItemIfAny () {
-        if (this.char() === "I") {
-            return  new ItemToken(this.readName2());
+        if (this.token.at(this.index) === "I") {
+            this.index++;
+            return  new ItemToken(this.readName());
         }
         return undefined;
     }
 
-    private readName2() {
-        if (this.token.at(this.index) !== "(") {
+    private readName() {
+        if (this.char() !== "(") {
             throw 'Invalid character' + this.token.at(this.index)
         }
-        const endNameIndex = this.token.indexOf(')', this.index);
-        const name = this.token.substring(this.index + 1, endNameIndex);
+        let name = ""
+        let current = this.char();
+        while (current !== ')') {
+            name += current;
+            current = this.char();
+        }
         return name;
     }
 
