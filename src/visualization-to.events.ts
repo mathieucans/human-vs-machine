@@ -157,6 +157,7 @@ class TokenToEventsVisitor implements TokenVisitor {
     private readonly stations: Station[] = [];
     private beltLength: number = 0
     private _eventsByItem: ConveyerEvent[][]  = []
+    private lastIemPosition = 0
 
     visitEmpty (token: EmptyToken): void {
         this.beltLength++
@@ -167,7 +168,7 @@ class TokenToEventsVisitor implements TokenVisitor {
         const events:ConveyerEvent[] = [ItemAdded(item)];
         const itemFinalPosition = this.beltLength;
         this.beltLength++
-        let itemPosition = 0;
+        let itemPosition = this.lastIemPosition;
 
         this.stations.filter(station => station.position < itemFinalPosition)
             .forEach(station => {
@@ -181,6 +182,7 @@ class TokenToEventsVisitor implements TokenVisitor {
             events.push(Stepped)
             itemPosition++;
         }
+        this.lastIemPosition = itemFinalPosition
         this._eventsByItem.push(events)
     }
 
