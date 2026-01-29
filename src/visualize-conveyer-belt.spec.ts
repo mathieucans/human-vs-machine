@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { ConveyorInitialized, ItemAdded, ItemEnteredStation, ItemLeftStation, Paused, Stepped } from "./domain/events";
+import { ConveyorInitialized, ItemAdded, ItemEnteredStation, ItemLeftStation, Paused, Resumed, Stepped } from "./domain/events";
 import { visualizationToEvents } from "./visualization-to.events";
 import { eventsToVisualization } from "./events-to.visualization";
 import { Belt, Item, Station } from "./domain/Entities";
@@ -85,7 +85,19 @@ describe('visualize-conveyer-belt', () => {
                 ItemEnteredStation(item1, station1),
                 Paused,
                 ItemAdded(item2)
-            ],`I(i2) S[I(i1)](s1) SS(s2)`]
+            ],`I(i2) S[I(i1)](s1) SS(s2)`],
+            [
+                [
+                    ConveyorInitialized(belt),
+                    ItemAdded(item1),
+                    Stepped,
+                    ItemEnteredStation(item1, station1),
+                    Paused,
+                    ItemAdded(item2),
+                    ItemLeftStation(item1, station1),
+                    Resumed,
+                ], `I(i2) S(s1)I(i1) SS(s2)`
+            ]
         ])
         ('%s <-> %s', (events, outputs) => {
             test('eventsToVisualization', () => {

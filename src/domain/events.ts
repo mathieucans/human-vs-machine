@@ -45,6 +45,14 @@ export class PausedEvent {
 
 export const Paused = new PausedEvent();
 
+export class ResumedEvent {
+    toString () {
+        return `Resumed`;
+    }
+}
+
+export const Resumed = new ResumedEvent();
+
 export class ItemEnteredStationEvent {
     constructor (
         public readonly item: Item,
