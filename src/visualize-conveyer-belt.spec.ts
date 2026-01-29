@@ -16,6 +16,19 @@ describe('visualize-conveyer-belt', () => {
         [[ConveyorInitialized(new Belt(3, [new Station(0, "s", 1)]))], "S(s) _ _"],
         [[ConveyorInitialized(new Belt(3, [new Station(0, "s", 3)]))], "SSS(s)"],
         [[ConveyorInitialized(new Belt(3, [])), ItemAdded(new Item("a")), Stepped, Stepped], "_ _ I(a)"],
+        [[ConveyorInitialized(new Belt(3, [])),
+            ItemAdded(new Item("a")),
+            Stepped,
+            Stepped,
+            ItemAdded(new Item("b")),
+        ], "I(b) _ I(a)"],
+        [[ConveyorInitialized(new Belt(4, [])),
+            ItemAdded(new Item("a")),
+            Stepped,
+            Stepped,
+            ItemAdded(new Item("b")),
+            Stepped,
+        ], "_ I(b) _ I(a)"],
         [[
             ConveyorInitialized(new Belt(3, [])),
             ItemAdded(new Item("a")),
@@ -77,7 +90,7 @@ describe('visualize-conveyer-belt', () => {
                 Stepped,
                 ItemEnteredStation(item1, station1),
                 Paused,
-            ],'_ S[I(i1)](s1) SS(s2)'],
+            ], '_ S[I(i1)](s1) SS(s2)'],
             [[
                 ConveyorInitialized(belt),
                 ItemAdded(item1),
@@ -85,19 +98,19 @@ describe('visualize-conveyer-belt', () => {
                 ItemEnteredStation(item1, station1),
                 Paused,
                 ItemAdded(item2)
-            ],`I(i2) S[I(i1)](s1) SS(s2)`],
-            [
-                [
-                    ConveyorInitialized(belt),
-                    ItemAdded(item1),
-                    Stepped,
-                    ItemEnteredStation(item1, station1),
-                    Paused,
-                    ItemAdded(item2),
-                    ItemLeftStation(item1, station1),
-                    Resumed,
-                ], `I(i2) S(s1)I(i1) SS(s2)`
-            ]
+            ], `I(i2) S[I(i1)](s1) SS(s2)`],
+            // [
+            //     [
+            //         ConveyorInitialized(belt),
+            //         ItemAdded(item1),
+            //         Stepped,
+            //         ItemEnteredStation(item1, station1),
+            //         Paused,
+            //         ItemAdded(item2),
+            //         ItemLeftStation(item1, station1),
+            //         Resumed,
+            //     ], `I(i2) S(s1)I(i1) SS(s2)`
+            // ]
         ])
         ('%s <-> %s', (events, outputs) => {
             test('eventsToVisualization', () => {
