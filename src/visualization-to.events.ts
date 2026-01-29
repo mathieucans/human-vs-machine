@@ -49,15 +49,6 @@ class EmptyTokenWithItemsLeft implements Token {
     }
 }
 
-function extractName (token: string, index: number) {
-    if (token.at(index) !== "(") {
-        throw 'Invalid character' + token.at(index)
-    }
-    const endNameIndex = token.indexOf(')', index);
-    const name = token.substring(index + 1, endNameIndex);
-    return name;
-}
-
 class TokenReader {
     private index = 0
     constructor (private token: string) {
@@ -163,9 +154,9 @@ interface TokenVisitor {
 }
 
 class TokenToEventsVisitor implements TokenVisitor {
-    private _events: ConveyerEvent[] = []
     private readonly stations: Station[] = [];
     private beltLength: number = 0
+    private _eventsByItem: ConveyerEvent[][]  = []
 
     visitEmpty (token: EmptyToken): void {
         this.beltLength++
@@ -173,22 +164,24 @@ class TokenToEventsVisitor implements TokenVisitor {
 
     visitItem (token: ItemToken): void {
         const item = new Item(token.name);
-        this._events.push(ItemAdded(item))
+        const events:ConveyerEvent[] = [ItemAdded(item)];
         const itemFinalPosition = this.beltLength;
         this.beltLength++
         let itemPosition = 0;
 
         this.stations.filter(station => station.position < itemFinalPosition)
             .forEach(station => {
-                this._events.push(ItemEnteredStation(item, station));
-                this._events.push(ItemLeftStation(item, station));
+                events.push(ItemEnteredStation(item, station));
+                events.push(ItemLeftStation(item, station));
+
                 itemPosition += station.position + station.size -1;
             })
 
         while (itemPosition < itemFinalPosition) {
-            this._events.push(Stepped)
+            events.push(Stepped)
             itemPosition++;
         }
+        this._eventsByItem.push(events)
     }
 
     visitStation (token: StationToken): void {
@@ -198,38 +191,40 @@ class TokenToEventsVisitor implements TokenVisitor {
 
         if (token.processingItem) {
             const item = new Item(token.processingItem.name);
-            this._events.push(
-                ItemAdded(item),
+            this._eventsByItem.push(
+                [ItemAdded(item),
                 Stepped,
                 ItemEnteredStation(item, station),
-                Paused
+                Paused]
             )
         }
 
         if (token.itemAtSamePosition) {
             const item = new Item(token.itemAtSamePosition.name);
-            this._events.push(
+            this._eventsByItem.push([
                 ItemAdded(item),
                 ItemEnteredStation(item, station),
-                ItemLeftStation(item, station))
+                ItemLeftStation(item, station)])
         }
     }
 
     visitLastEmptyToken (token: EmptyTokenWithItemsLeft): void {
         this.beltLength++
+        const events: ConveyerEvent[] = []
         for (const leftItem of token.leftItems) {
-            this._events.push(ItemAdded(new Item(leftItem.name)))
-            this._events.push(Stepped)
+            events.push(ItemAdded(new Item(leftItem.name)))
+            events.push(Stepped)
         }
         for (let i = 1; i < this.beltLength; i++) {
-            this._events.push(Stepped)
+            events.push(Stepped)
         }
+        this._eventsByItem.push(events)
 
     }
 
     events () {
         const conveyorInitializedEvents: ConveyerEvent[] = [ConveyorInitialized(new Belt(this.beltLength, this.stations))];
-        return conveyorInitializedEvents.concat(this._events)
+        return conveyorInitializedEvents.concat(this._eventsByItem.reverse().flat());
     }
 }
 
