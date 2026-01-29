@@ -65,18 +65,17 @@ class StationTokenReader {
     }
 
     readSize () {
-        while (this.index < this.token.length && this.token.at(this.index) === "S") {
+        while (this.index < this.token.length && this.currentChar() === "S") {
             this.index++;
         }
         return this.index
     }
 
     readProcessingTokenIfAny () {
-        if(this.token.substring(this.index).startsWith("[")){
-            this.index ++;
-            const itemName = extractName(this.token, ++this.index);
-            this.index+=itemName.length + 3
-            return new ItemToken(itemName);
+        if(this.readCharIf("[")){
+            const item = this.readItemIfAny()
+            this.readCharIf("]")
+            return item;
         }
         return undefined;
     }
@@ -86,28 +85,39 @@ class StationTokenReader {
     }
 
     readItemIfAny () {
-        if (this.token.at(this.index) === "I") {
-            this.index++;
+        if (this.readCharIf("I")) {
             return  new ItemToken(this.readName());
         }
         return undefined;
     }
 
+    private currentChar () {
+        return this.token.at(this.index);
+    }
+
     private readName() {
-        if (this.char() !== "(") {
-            throw 'Invalid character' + this.token.at(this.index)
+        if (this.readChar() !== "(") {
+            throw 'Invalid character' + this.currentChar()
         }
         let name = ""
-        let current = this.char();
+        let current = this.readChar();
         while (current !== ')') {
             name += current;
-            current = this.char();
+            current = this.readChar();
         }
         return name;
     }
 
-    private char () {
+    private readChar () {
         return this.token.at(this.index++);
+    }
+
+    private readCharIf (value: string) {
+        if(this.currentChar() === value) {
+            this.index++;
+            return true;
+        }
+        return false;
     }
 }
 
