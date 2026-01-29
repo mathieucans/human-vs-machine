@@ -58,15 +58,14 @@ function extractName (token: string, index: number) {
     return name;
 }
 
-class StationTokenReader {
+class TokenReader {
     private index = 0
     constructor (private token: string) {
 
     }
 
-    readSize () {
-        while (this.index < this.token.length && this.currentChar() === "S") {
-            this.index++;
+    readStationSize () {
+        while (this.readCharIf("S")) {
         }
         return this.index
     }
@@ -95,7 +94,7 @@ class StationTokenReader {
         return this.token.at(this.index);
     }
 
-    private readName() {
+    readName() {
         if (this.readChar() !== "(") {
             throw 'Invalid character' + this.currentChar()
         }
@@ -112,7 +111,7 @@ class StationTokenReader {
         return this.token.at(this.index++);
     }
 
-    private readCharIf (value: string) {
+    readCharIf (value: string) {
         if(this.currentChar() === value) {
             this.index++;
             return true;
@@ -128,18 +127,18 @@ function reduceToTokenList (previous: Token[], token: string) {
     if (token === "_:") {
         return previous.concat(new EmptyTokenWithItemsLeft())
     }
-    if (token.startsWith("I(")) {
-        const name = extractName(token, 1);
+    const reader = new TokenReader(token);
+    if (reader.readCharIf("I")) {
+        const token =  new ItemToken(reader.readName());
         const lastToken = previous[previous.length - 1];
         if (lastToken instanceof EmptyTokenWithItemsLeft) {
-            lastToken.addLeftItem(new ItemToken(name))
+            lastToken.addLeftItem(token)
             return previous
         }
-        return previous.concat(new ItemToken(name))
+        return previous.concat(token)
     }
-    if (token.startsWith("S")) {
-        const reader = new StationTokenReader(token)
-        const size = reader.readSize();
+    if (reader.readCharIf("S")) {
+        const size = reader.readStationSize();
         const processingItem = reader.readProcessingTokenIfAny()
         const name = reader.readStationName()
         const stationToken = new StationToken(previous.length, name, size);
