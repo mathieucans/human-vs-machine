@@ -30,11 +30,17 @@ export function ItemAdded (item: Item) {
 }
 
 export class SteppedEvent {
+    toString () {
+        return `Stepped`;
+    }
 }
 
 export const Stepped = new SteppedEvent();
 
 export class PausedEvent {
+    toString () {
+        return `Paused`;
+    }
 }
 
 export const Paused = new PausedEvent();
