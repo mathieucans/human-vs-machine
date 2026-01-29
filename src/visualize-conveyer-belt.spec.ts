@@ -77,7 +77,15 @@ describe('visualize-conveyer-belt', () => {
                 Stepped,
                 ItemEnteredStation(item1, station1),
                 Paused,
-            ],'_ S[I(i1)](s1) SS(s2)']
+            ],'_ S[I(i1)](s1) SS(s2)'],
+            [[
+                ConveyorInitialized(belt),
+                ItemAdded(item1),
+                Stepped,
+                ItemEnteredStation(item1, station1),
+                Paused,
+                ItemAdded(item2)
+            ],`I(i2) S[I(i1)](s1) SS(s2)`]
         ])
         ('%s <-> %s', (events, outputs) => {
             test('eventsToVisualization', () => {
